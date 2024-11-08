@@ -65,7 +65,6 @@ This project is licensed under the MIT License.
 
 ## Screenshots:
 
-![Dashboard Screenshot 1](https://jestr-meme-uploads.s3.us-east-2.amazonaws.com/ss2.PNG)
 
 ![Dashboard Screenshot 2](https://jestr-meme-uploads.s3.us-east-2.amazonaws.com/ss3.jpg)
 
