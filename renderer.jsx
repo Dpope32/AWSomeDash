@@ -1,4 +1,3 @@
-// renderer.jsx
 const React = require('react');
 const ReactDOM = require('react-dom');
 const Recharts = require('recharts');
@@ -165,7 +164,6 @@ const Metrics = ({ refreshTrigger }) => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-6 gap-4 p-6">
-      {/* Existing Metrics */}
       <MetricCard title="Total Users" value={metrics.userCount} color="blue" />
       <MetricCard title="Total Memes" value={metrics.memeCount} color="green" />
       <MetricCard title="Dynamo Memes" value={metrics.memeDynamoCount} color="violet" />
@@ -174,8 +172,6 @@ const Metrics = ({ refreshTrigger }) => {
       <MetricCard title="Total Interactions" value={metrics.interactionCount} color="red" />
       <MetricCard title="New Users Today" value={`+${metrics.newUsersCount}`} color="indigo" />
       <MetricCard title="Open Feedback" value={metrics.feedbackCount} color="orange" />
-      
-      {/* Additional Metrics */}
       <MetricCard title="Notifications" value={metrics.notificationCount} color="teal" />
       <MetricCard title="UserLikes" value={metrics.likeCount} color="cyan" />
       <MetricCard title="Comments" value={metrics.commentCount} color="emerald" />
@@ -184,8 +180,7 @@ const Metrics = ({ refreshTrigger }) => {
   );
 };
 
-// MetricCard Component for Reusability
-const MetricCard = ({ title, value, color }) => {
+const MetricCard = React.memo(({ title, value, color }) => {
   const colorClass = {
     blue: 'text-blue-400',
     green: 'text-green-400',
@@ -207,10 +202,9 @@ const MetricCard = ({ title, value, color }) => {
       <p className={`text-3xl font-bold ${colorClass}`}>{value}</p>
     </div>
   );
-};
+});
 
 // MemeHistoryGraph Component
-// Feel free to remove and replace with your own S3 Bucket / Dynamo MetaData table data
 const MemeHistoryGraph = () => {
   const [historyData, setHistoryData] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -281,7 +275,7 @@ const MemeHistoryGraph = () => {
       <div style={{ width: '100%', height: 300 }}>
         {historyData.length > 0 ? (
           <LineChart
-            width={window.innerWidth - 100} // Adjust width as needed
+            width={window.innerWidth - 100}
             height={300}
             data={historyData}
             margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
@@ -321,6 +315,7 @@ const MemeGrid = () => {
   const [images, setImages] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const [fullscreenMedia, setFullscreenMedia] = React.useState(null);
 
   const fetchImages = React.useCallback(async () => {
     try {
@@ -396,31 +391,66 @@ const MemeGrid = () => {
   }
 
   return (
-    <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 mt-6">
-      {images.map((image) => (
-        <div key={image.key} className="relative">
-          <div className="w-full pb-[100%] relative overflow-hidden bg-gray-800 rounded-lg">
-            {image.isVideo ? (
+    <div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+        {images.map((image) => (
+          <div
+            key={image.key}
+            className="relative cursor-pointer"
+            onClick={() => setFullscreenMedia(image)}
+          >
+            <div className="w-full pb-[100%] relative overflow-hidden bg-gray-800 rounded-lg">
+              {image.isVideo ? (
+                <video
+                  className="absolute inset-0 w-full h-full object-contain"
+                  controls
+                  preload="metadata"
+                >
+                  <source src={image.url} type="video/mp4" />
+                </video>
+              ) : (
+                <img
+                  src={image.url}
+                  alt={image.key}
+                  className="absolute inset-0 w-full h-full object-contain"
+                />
+              )}
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-xs">
+              {new Date(image.lastModified).toLocaleDateString()}
+            </div>
+          </div>
+        ))}
+      </div>
+      {fullscreenMedia && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={() => setFullscreenMedia(null)}
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="absolute top-2 right-2 text-white text-2xl"
+              onClick={() => setFullscreenMedia(null)}
+            >
+              &times;
+            </button>
+            {fullscreenMedia.isVideo ? (
               <video
-                className="absolute inset-0 w-full h-full object-contain"
+                src={fullscreenMedia.url}
                 controls
-                preload="metadata"
-              >
-                <source src={image.url} type="video/mp4" />
-              </video>
+                autoPlay
+                className="max-w-full max-h-full"
+              />
             ) : (
               <img
-                src={image.url}
-                alt={image.key}
-                className="absolute inset-0 w-full h-full object-contain"
+                src={fullscreenMedia.url}
+                alt=""
+                className="max-w-full max-h-full"
               />
             )}
           </div>
-          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 p-2 text-xs">
-            {new Date(image.lastModified).toLocaleDateString()}
-          </div>
         </div>
-      ))}
+      )}
     </div>
   );
 };
