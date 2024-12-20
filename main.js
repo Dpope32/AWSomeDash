@@ -8,11 +8,13 @@ function createWindow() {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
-      }
+        webSecurity: false
+      },
+      icon: path.join(__dirname, 'icon.png')
     });
 
   // For development debugging
- // win.webContents.openDevTools();
+  win.webContents.openDevTools();
 
   win.loadFile('index.html');
 }
